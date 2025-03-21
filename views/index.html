@@ -16,9 +16,10 @@
         }
 
         body {
-            width: 50%;
-            margin: auto;
-            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
         }
 
         #section {
@@ -287,6 +288,18 @@
             background-color: transparent;
         }
 
+        #password_for_locksystem {
+            border: 2px solid white;
+            font-size: x-large;
+            outline: none;
+            border-radius: 5px;
+        }
+
+        #Invalid_message {
+            font-size: 10px;
+            display: none;
+        }
+
         /* ---------------------------------------------------- mobile responsive CSS code ---------------------------------------------------- */
         @media only screen and (max-width: 640px) {
             body {
@@ -383,440 +396,589 @@
 </head>
 
 <body id="body">
-    <!-- ############################# loader ######################################### -->
-    <div id="loader_wrapper">
-        <div id="rectangle">
-            <div id="circle"></div>
-        </div>
-        <h1 id="added_message">Todo added!</h1>
-    </div>
-    <!-- ############################ loader-END ###################################### -->
-
-    <!-- ########################### form for new todo creating ###################### -->
-    <form method="post" id="form">
-        <input type="text" name="input" id="input" placeholder="Enter Todo..." required />
-        <button type="submit" id="submit">ADD</button>
-    </form>
-    <!-- ################################## END form ################################## -->
-
-    <!-- ########################### message for no-todos ##############################-->
-    <section id="message_no_todods">
-        <h1">NO TODO's!</h1>
-    </section>
-    <!-- ################################## END message ############################### -->
-
-    <!-- ########################### edit the todo form & div ######################### -->
-    <div id="popup_input_div">
-        <form id="popup_input">
-            <textarea type="text" id="edit_input" placeholder="Enter the Todo..."></textarea>
-            <button type="submit" id="Update">UpDate</button>
-            <button type="button" id="close"><ion-icon name="close-outline"></ion-icon></button>
+    <!------------------------------------ lock system --------------------------------------->
+    <div class="lock_system">
+        <h1 id="lock_system_timer"></h1>
+        <form method="post" id="form_for_lock_system">
+            <input type="password" id="password_for_locksystem" required>
         </form>
+        <h1 id="Invalid_message">Invalid Password!</h1>
     </div>
-    <!-- ############################# END the todo form ############################## -->
+    <!------------------------------------ end lock system ----------------------------------->
 
-    <!-- ############################# recycle_bin section ############################ -->
-    <div id="recycle_bin_btn_wrapper">
-        <button id="recycle_bin_btn"><ion-icon name="refresh-outline"></ion-icon></button>
-    </div>
-    <div id="recycle_bin">
-        <button id="close_recycle_bin"><ion-icon name="close-outline"></ion-icon></button>
-        <div id="recycle_bin_todos"></div>
-        <h1 id="recycle_bin_message">No Todo's</h1>
-        <h1 id="timer"></h1>
-    </div>
-    <!-- ############################# END the recycle_bin section #################### -->
+    <!------------------------------------ main_content -------------------------------------->
+    <div id="main_content">
+        <!--------------------------------- loader ------------------------------------------->
+        <div id="loader_wrapper">
+            <div id="rectangle">
+                <div id="circle"></div>
+            </div>
+            <h1 id="added_message">Todo added!</h1>
+        </div>
+        <!------------------------------- loader-END ----------------------------------------->
 
+        <!--------------------------------form for new todo creating ------------------------->
+        <form method="post" id="form">
+            <input type="text" name="input" id="input" placeholder="Enter Todo..." required />
+            <button type="submit" id="submit">ADD</button>
+        </form>
+        <!------------------------------------- END form ------------------------------------->
+
+        <!------------------------------ message for no-todos -------------------------------->
+        <section id="message_no_todods">
+            <h1">NO TODO's!</h1>
+        </section>
+        <!------------------------------------- END message ---------------------------------->
+
+        <!------------------------------ edit the todo form & div ---------------------------->
+        <div id="popup_input_div">
+            <form id="popup_input">
+                <textarea type="text" id="edit_input" placeholder="Enter the Todo..."></textarea>
+                <button type="submit" id="Update">UpDate</button>
+                <button type="button" id="close"><ion-icon name="close-outline"></ion-icon></button>
+            </form>
+        </div>
+        <!-------------------------------- END the todo form --------------------------------->
+
+        <!-------------------------------- recycle_bin section ------------------------------->
+        <div id="recycle_bin_btn_wrapper">
+            <button id="recycle_bin_btn"><ion-icon name="refresh-outline"></ion-icon></button>
+        </div>
+        <div id="recycle_bin">
+            <button id="close_recycle_bin"><ion-icon name="close-outline"></ion-icon></button>
+            <div id="recycle_bin_todos"></div>
+            <h1 id="recycle_bin_message">No Todo's</h1>
+            <h1 id="timer"></h1>
+        </div>
+        <!-------------------------------- END the recycle_bin section ----------------------->
+    </div>
+    <!------------------------------------ end main_content ---------------------------------->
     <script>
-        let done;
-        const timerDisplay = document.getElementById("timer");
-        //-------------------new todo adding-----------------------------------------
-        let form = document.getElementById("form");
-        form.addEventListener("submit", async function (Event) {
-            Event.preventDefault();
-            const loader_wrapper = document.getElementById("loader_wrapper");
-            const rectangle = document.getElementById("rectangle");
-            const added_message = document.getElementById("added_message");
-            rectangle.style.display = "flex";
-            //responsive for mobile------------------------------------------
-            const isMobile = window.matchMedia("(max-width: 640px)").matches;
-            if (isMobile) {
-                loader_wrapper.style.transform = "none";
-                loader_wrapper.style.display = "flex";
-
-            } else {
-                loader_wrapper.style.transform = "translateX(220px)";
-                loader_wrapper.style.transition = "transform";
-                loader_wrapper.style.transitionDuration = "1S";
+        let body, done, value, main_content, lock_system_timer, lock_system, form_for_lock_system, password_for_locksystem;
+        value = false;
+        lock_system = document.querySelector(".lock_system");
+        form_for_lock_system = document.getElementById("form_for_lock_system");
+        main_content = document.getElementById("main_content");
+        main_content.remove();
+        lock_system_timer = document.getElementById("lock_system_timer");
+        lock_system_timer.remove();
+        body = document.getElementById("body");
+        //---------------------------- start the timer for lock system -------------------------------
+        async function stfls() {
+            try {
+                let response = await fetch("https://node-todo-2-076c.onrender.com/start_time_for_lock_system", {
+                    method: 'GET',
+                    headers: { "Content-Type": "application/json" }
+                })
+                if (response.ok) {
+                    let data = await response.json();
+                    if (data.chance == 0) {
+                        form_for_lock_system.reset();
+                        lock_system.remove();
+                        document.body.appendChild(lock_system_timer);
+                        lsts()
+                    }
+                }
+            } catch (err) {
+                console.error(err);
             }
-            //--------------------------------------------------------------
-            const todo = document.getElementById("input").value;
-            const submit_button = document.getElementById("submit");
-            submit_button.disabled = true;
-            const Current_date = new Date();
-            const Modifyed_Date = { "Date": Current_date.toDateString(), "Time": Current_date.toLocaleTimeString() };
-            const done = false;
-            if (todo) {
-                try {
-                    //----------------------exists todo checking----------------------
-                    const response1 = await fetch("https://node-todo-2-076c.onrender.com/getTodos", {
-                        method: "GET",
-                        headers: { "Content-Type": "application/json" }
-                    });
-                    if (response1.ok) {
-                        let data = await response1.json();
-                        const exists = data.some(item => item.todo === todo);
-                        if (exists) {
-                            submit_button.disabled = false;
-                            const isMobile = window.matchMedia("(max-width: 640px)").matches;
-                            if (isMobile) {
-                                loader_wrapper.style.transform = "none";
+        }
+        //------------------------- end start the timer for lock system ------------------------------
+
+        //---------------------------- lock system timer status render -------------------------------
+        async function lsts() {
+            try {
+                let response = await fetch("https://node-todo-2-076c.onrender.com/lock_system_timer_status", {
+                    method: 'GET',
+                    headers: { "Content-Type": "application/json" }
+                })
+                if (response.ok) {
+                    let data = await response.json();
+                    lock_system_timer.innerText = Math.floor(data.time / 1000);
+                    if (data.time > 0) {
+                        setTimeout(lsts, 1000);
+                        lock_system.remove();
+                        document.body.appendChild(lock_system_timer);
+                    }
+                    if (data.time === 0) {
+                        document.body.appendChild(lock_system);
+                        lock_system_timer.remove();
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+            }
+
+        }
+        lsts();
+        //----------------------------- end lock system timer status render --------------------------
+
+        //---------------------------- lock system reset ---------------------------------------------
+        async function reset() {//lock system reset
+            try {
+                let response = await fetch("https://node-todo-2-076c.onrender.com/reset", {
+                    method: 'GET',
+                    headers: { "Content-Type": "application/json" }
+                })
+                if (response.ok) {
+                    let data = await response.json();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+
+        }
+        //---------------------------- end lock system reset -----------------------------------------
+
+        //----------------------- start lock system --------------------------------------------------
+        form_for_lock_system.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            password_for_locksystem = document.getElementById("password_for_locksystem").value;
+            try {
+                const response = await fetch("https://node-todo-2-076c.onrender.com/locksystem", {
+                    method: 'POST',
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ password: password_for_locksystem })
+                })
+                if (response.ok) {
+                    const results = await response.json();
+                    if (results.value) {
+                        reset()
+                        lock_system.remove();
+                        value = results.value;
+                        body.style.display = "block";
+                        body.style.margin = "auto";
+                        body.style.marginTop = "20px";
+                        document.body.appendChild(main_content);
+                        const isMobile = window.matchMedia("(max-width: 640px)").matches;
+                        function myFunction(x) {
+                            if (x.matches) {
+                                body.style.width = "auto";
                             } else {
-                                loader_wrapper.style.transform = "translateX(-210px)";
+                                body.style.width = "50%";
                             }
-                            return alert("Todo was exsists!")
                         }
-                    } else {
-                        return alert("ERROR fetching todos!")
-                    }
-                    //----------------------------------------------------------------
-
-                    //-------------------new todo adding------------------------------
-                    const response = await fetch("https://node-todo-2-076c.onrender.com/addTodo", {
-                        method: "POST",
-                        headers: {
-                            "Content-Type": "application/json"
-                        },
-                        body: JSON.stringify({ todo, Modifyed_Date, done })
-                    })
-                    console.log("Response status:", response.status);
-                    if (response.ok) {
-                        const result = await response.json();
-                        console.log(result);
-                        submit_button.disabled = false;
-                        form.reset();
-                        rectangle.style.display = "none";
-                        added_message.style.display = "flex";
-                        setTimeout(() => {
-                            loader_wrapper.style.transform = "translateX(-250px)";
-                            loader_wrapper.style.transition = "transform";
-                            loader_wrapper.style.transitionDuration = "1S";
-                        }, 2000);
-                        setInterval(() => {
-                            location.reload();
-                        }, 3000)
-                    } else {
-                        alert("ERROR!");
-                    }
-                    //----------------------------------------------------------------
-                } catch (error) {
-                    console.error("ERROR: ", error);
-                }
-            } else {
-                alert("Empty!")
-            }
-        });
-
-        let message_no_todods = document.getElementById("message_no_todods");
-        //-----------------------rendering the todos---------------------------------
-        fetch("https://node-todo-2-076c.onrender.com/getTodos")
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                //------------------------todos is empty checking--------------------
-                if (data.length === 0) {
-                    message_no_todods.style.display = "block";
-                }
-                //----------------------todo render on html-file---------------------
-                data.forEach(item => {
-                    let section = document.createElement("section");
-                    section.id = "section";
-                    section.innerHTML += `
-                    <h2 class="todo_value_">${item.todo}</h2>
-                    <p>${item.Date.Time} | ${item.Date.Date}</p>
-                    <button class="done" data-id=${item._id}>Done</button>
-                    <button class="edit" data-id=${item._id} todo-value="${item.todo}">Edit</button>
-                    <button class="delete" data-id=${item._id}>Delete</button>`;
-                    document.body.appendChild(section);
-                    //---------------Done value is true || false checking------------
-                    if (item.Done === true) {
-                        let todo_value_ = section.querySelector(".todo_value_");
-                        todo_value_.style.textDecorationLine = "line-through";
-                        let edit_button = section.querySelectorAll(".edit");
-                        edit_button.forEach(element => {
-                            element.disabled = true;
+                        var x = window.matchMedia("(max-width: 640px)")
+                        myFunction(x);
+                        x.addEventListener("change", function () {
+                            myFunction(x);
                         });
-                    }
-                });
-                //-------------------------------------------------------------------
 
-                //--------------------------deleteing the todos---------------------- 
-                let delete_buttons = document.querySelectorAll(".delete");
-                delete_buttons.forEach(delete_button => {
-                    delete_button.addEventListener("click", async function () {
-                        let clickedId = this.getAttribute("data-id");
-                        console.log(clickedId);
-                        try {
-                            let response = await fetch(`https://node-todo-2-076c.onrender.com/recycle_bin/${clickedId}`, {
-                                method: "GET",
-                                headers: { "Content-Type": "application/json" },
-                            })
-                            console.log("Response Status:", response.status);
-                            if (response.ok) {
-                                let results = await response.json();
-                                console.log(results);
-                                location.reload();
-                            }
-                        } catch (error) {
-                            console.log("Error:", error);
-                        }
-                    });
-                });
-                //------------------------------------------------------------------
+                        if (value) {
+                            const timerDisplay = document.getElementById("timer");
+                            //-------------------new todo adding-----------------------------------------
+                            let form = document.getElementById("form");
+                            form.addEventListener("submit", async function (Event) {
+                                Event.preventDefault();
+                                const loader_wrapper = document.getElementById("loader_wrapper");
+                                const rectangle = document.getElementById("rectangle");
+                                const added_message = document.getElementById("added_message");
+                                rectangle.style.display = "flex";
+                                //responsive for mobile------------------------------------------
+                                const isMobile = window.matchMedia("(max-width: 640px)").matches;
+                                if (isMobile) {
+                                    loader_wrapper.style.transform = "none";
+                                    loader_wrapper.style.display = "flex";
 
-                //-------------------------clicking the done value------------------
-                let done_buttons = document.querySelectorAll(".done");
-                done = false;
-                done_buttons.forEach(done_button => {
-                    done_button.addEventListener("click", async function () {
-                        let clickedId2 = this.getAttribute("data-id");
-                        done = true;
-                        try {
-                            const response = await fetch(`https://node-todo-2-076c.onrender.com/doneTodo/${clickedId2}`, {
-                                method: "PUT",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ done: done })
+                                } else {
+                                    loader_wrapper.style.transform = "translateX(220px)";
+                                    loader_wrapper.style.transition = "transform";
+                                    loader_wrapper.style.transitionDuration = "1S";
+                                }
+                                //--------------------------------------------------------------
+                                const todo = document.getElementById("input").value;
+                                const submit_button = document.getElementById("submit");
+                                submit_button.disabled = true;
+                                const Current_date = new Date();
+                                const Modifyed_Date = { "Date": Current_date.toDateString(), "Time": Current_date.toLocaleTimeString() };
+                                const done = false;
+                                if (todo) {
+                                    try {
+                                        //----------------------exists todo checking----------------------
+                                        const response1 = await fetch("https://node-todo-2-076c.onrender.com/getTodos", {
+                                            method: "GET",
+                                            headers: { "Content-Type": "application/json" }
+                                        });
+                                        if (response1.ok) {
+                                            let data = await response1.json();
+                                            const exists = data.some(item => item.todo === todo);
+                                            if (exists) {
+                                                submit_button.disabled = false;
+                                                const isMobile = window.matchMedia("(max-width: 640px)").matches;
+                                                if (isMobile) {
+                                                    loader_wrapper.style.transform = "none";
+                                                    loader_wrapper.style.display = "none";
+                                                } else {
+                                                    loader_wrapper.style.transform = "translateX(-220px)";
+                                                    loader_wrapper.style.transition = "transform";
+                                                    loader_wrapper.style.transitionDuration = "1S";
+                                                }
+                                                return alert("Todo was exsists!")
+                                            }
+                                        } else {
+                                            return alert("ERROR fetching todos!")
+                                        }
+                                        //----------------------------------------------------------------
+
+                                        //-------------------new todo adding------------------------------
+                                        const response = await fetch("https://node-todo-2-076c.onrender.com/addTodo", {
+                                            method: "POST",
+                                            headers: {
+                                                "Content-Type": "application/json"
+                                            },
+                                            body: JSON.stringify({ todo, Modifyed_Date, done })
+                                        })
+                                        console.log("Response status:", response.status);
+                                        if (response.ok) {
+                                            const result = await response.json();
+                                            console.log(result);
+                                            submit_button.disabled = false;
+                                            form.reset();
+                                            rectangle.style.display = "none";
+                                            added_message.style.display = "flex";
+                                            setTimeout(() => {
+                                                loader_wrapper.style.transform = "translateX(-100vw)";
+                                                loader_wrapper.style.transition = "transform";
+                                                loader_wrapper.style.transitionDuration = "1S";
+                                            }, 2000);
+                                            setInterval(() => {
+                                                location.reload();
+                                            }, 3000)
+                                        } else {
+                                            alert("ERROR!");
+                                        }
+                                        //----------------------------------------------------------------
+                                    } catch (error) {
+                                        console.error("ERROR: ", error);
+                                    }
+                                } else {
+                                    alert("Empty!")
+                                }
                             });
-                            console.log("Response Status: ", response.status);
-                            if (response.ok) {
-                                let results = await response.json();
-                                console.log(results);
-                                location.reload()
-                            }
-                        } catch (error) {
-                            console.error("Error:", error);
-                        }
-                    })
-                });
-                //-----------------------------------------------------------------
 
-                //------------------------editing the todos------------------------
-                let edit_buttons = document.querySelectorAll(".edit");
-                edit_buttons.forEach(edit_button => {
-                    edit_button.addEventListener("click", async function () {
-                        let body = document.getElementById("body");
-                        document.documentElement.scrollTo({
-                            top: 0,
-                            behavior: 'smooth' // Adds a smooth scroll effect
-                        });
-                        body.style.overflow = "hidden";
-                        let popup_input = document.getElementById("popup_input_div");
-                        let close = document.getElementById("close");
-                        //------------------------------------------------------
-                        let clickedId1 = this.getAttribute("data-id");
-                        let todoValue = this.getAttribute("todo-value");
-                        //------------------------------------------------------
-                        let edit_input = document.getElementById("edit_input");
-                        let update_button = document.getElementById("Update");
-                        //------------------------------------------------------
-                        popup_input.style.display = "flex";
-                        edit_input.value = todoValue;
-                        //--------------------close the popup-------------------
-                        close.addEventListener("click", function () {
-                            popup_input.style.display = "none";
-                            body.style.overflowY = "scroll";
-                        })
-                        //------------------------------------------------------
-                        popup_input.addEventListener("submit", async function (Event) {
-                            Event.preventDefault();
-                            try {
-                                let update_todo = edit_input.value;
-                                //-----------------popup input was empty checking-------------------
-                                if (update_todo === "") {
-                                    return alert("Enter the Todo!")
-                                }
-                                //------------------------------------------------------------------
-                                const response = await fetch(`https://node-todo-2-076c.onrender.com/editTodo/${clickedId1}`, {
-                                    method: "PUT",
-                                    headers: { "Content-Type": "application/json" },
-                                    body: JSON.stringify({ todo: update_todo })
+                            let message_no_todods = document.getElementById("message_no_todods");
+                            //-----------------------rendering the todos---------------------------------
+                            fetch("https://node-todo-2-076c.onrender.com/getTodos")
+                                .then(response => response.json())
+                                .then(data => {
+                                    console.log(data);
+                                    //------------------------todos is empty checking--------------------
+                                    if (data.length === 0) {
+                                        message_no_todods.style.display = "block";
+                                    }
+                                    //----------------------todo render on html-file---------------------
+                                    data.forEach(item => {
+                                        let section = document.createElement("section");
+                                        section.id = "section";
+                                        section.innerHTML += `
+                                                <h2 class="todo_value_">${item.todo}</h2>
+                                                <p>${item.Date.Time} | ${item.Date.Date}</p>
+                                                <button class="done" data-id=${item._id}>Done</button>
+                                                <button class="edit" data-id=${item._id} todo-value="${item.todo}">Edit</button>
+                                                <button class="delete" data-id=${item._id}>Delete</button>`;
+                                        document.body.appendChild(section);
+                                        //---------------Done value is true || false checking------------
+                                        if (item.Done === true) {
+                                            let todo_value_ = section.querySelector(".todo_value_");
+                                            todo_value_.style.textDecorationLine = "line-through";
+                                            let edit_button = section.querySelectorAll(".edit");
+                                            edit_button.forEach(element => {
+                                                element.disabled = true;
+                                            });
+                                            let done_button = section.querySelectorAll(".done");
+                                            done_button.forEach(element => {
+                                                element.disabled = true;
+                                            });
+                                        }
+                                    });
+                                    //-------------------------------------------------------------------
+
+                                    //--------------------------deleteing the todos---------------------- 
+                                    let delete_buttons = document.querySelectorAll(".delete");
+                                    delete_buttons.forEach(delete_button => {
+                                        delete_button.addEventListener("click", async function () {
+                                            let clickedId = this.getAttribute("data-id");
+                                            console.log(clickedId);
+                                            try {
+                                                let response = await fetch(`https://node-todo-2-076c.onrender.com/recycle_bin/${clickedId}`, {
+                                                    method: "GET",
+                                                    headers: { "Content-Type": "application/json" },
+                                                })
+                                                console.log("Response Status:", response.status);
+                                                if (response.ok) {
+                                                    let results = await response.json();
+                                                    console.log(results);
+                                                    location.reload();
+                                                }
+                                            } catch (error) {
+                                                console.log("Error:", error);
+                                            }
+                                        });
+                                    });
+                                    //------------------------------------------------------------------
+
+                                    //-------------------------clicking the done value------------------
+                                    let done_buttons = document.querySelectorAll(".done");
+                                    done = false;
+                                    done_buttons.forEach(done_button => {
+                                        done_button.addEventListener("click", async function () {
+                                            let clickedId2 = this.getAttribute("data-id");
+                                            done = true;
+                                            try {
+                                                const response = await fetch(`https://node-todo-2-076c.onrender.com/doneTodo/${clickedId2}`, {
+                                                    method: "PUT",
+                                                    headers: { "Content-Type": "application/json" },
+                                                    body: JSON.stringify({ done: done })
+                                                });
+                                                console.log("Response Status: ", response.status);
+                                                if (response.ok) {
+                                                    let results = await response.json();
+                                                    console.log(results);
+                                                    location.reload()
+                                                }
+                                            } catch (error) {
+                                                console.error("Error:", error);
+                                            }
+                                        })
+                                    });
+                                    //-----------------------------------------------------------------
+
+                                    //------------------------editing the todos------------------------
+                                    let edit_buttons = document.querySelectorAll(".edit");
+                                    edit_buttons.forEach(edit_button => {
+                                        edit_button.addEventListener("click", async function () {
+                                            let body = document.getElementById("body");
+                                            document.documentElement.scrollTo({
+                                                top: 0,
+                                                behavior: 'smooth' // Adds a smooth scroll effect
+                                            });
+                                            body.style.overflow = "hidden";
+                                            let popup_input = document.getElementById("popup_input_div");
+                                            let close = document.getElementById("close");
+                                            //------------------------------------------------------
+                                            let clickedId1 = this.getAttribute("data-id");
+                                            let todoValue = this.getAttribute("todo-value");
+                                            //------------------------------------------------------
+                                            let edit_input = document.getElementById("edit_input");
+                                            let update_button = document.getElementById("Update");
+                                            //------------------------------------------------------
+                                            popup_input.style.display = "flex";
+                                            edit_input.value = todoValue;
+                                            //--------------------close the popup-------------------
+                                            close.addEventListener("click", function () {
+                                                popup_input.style.display = "none";
+                                                body.style.overflowY = "scroll";
+                                            })
+                                            //------------------------------------------------------
+                                            popup_input.addEventListener("submit", async function (Event) {
+                                                Event.preventDefault();
+                                                try {
+                                                    let update_todo = edit_input.value;
+                                                    //-----------------popup input was empty checking-------------------
+                                                    if (update_todo === "") {
+                                                        return alert("Enter the Todo!")
+                                                    }
+                                                    //------------------------------------------------------------------
+                                                    const response = await fetch(`https://node-todo-2-076c.onrender.com/editTodo/${clickedId1}`, {
+                                                        method: "PUT",
+                                                        headers: { "Content-Type": "application/json" },
+                                                        body: JSON.stringify({ todo: update_todo })
+                                                    });
+                                                    console.log("Respones status: ", response.status);
+                                                    if (response.ok) {
+                                                        let results = await response.json();
+                                                        console.log(results);
+                                                        popup_input.style.display = "none";
+                                                        location.reload();
+                                                    }
+                                                } catch (err) {
+                                                    console.log("error", err);
+                                                }
+                                            })
+                                        })
+                                    });
+                                    //----------------------------------------------------------------------------------
+                                })
+                                .catch(err => {
+                                    console.error("error", err);
                                 });
-                                console.log("Respones status: ", response.status);
-                                if (response.ok) {
-                                    let results = await response.json();
-                                    console.log(results);
-                                    popup_input.style.display = "none";
-                                    location.reload();
-                                }
-                            } catch (err) {
-                                console.log("error", err);
-                            }
-                        })
-                    })
-                });
-                //----------------------------------------------------------------------------------
-            })
-            .catch(err => {
-                console.error("error", err);
-            });
-        //-----------------------recycle_bin section---------------------------------
-        let recycle_bin_btn = document.getElementById("recycle_bin_btn");
-        let recycle_bin = document.getElementById("recycle_bin");
-        let close_recycle_bin = document.getElementById("close_recycle_bin");
-        let recycle_bin_todos = document.getElementById("recycle_bin_todos");
-        const todo = document.getElementById("input");
-        const add = document.getElementById("submit");
+                            //-----------------------recycle_bin section---------------------------------
+                            let recycle_bin_btn = document.getElementById("recycle_bin_btn");
+                            let recycle_bin = document.getElementById("recycle_bin");
+                            let close_recycle_bin = document.getElementById("close_recycle_bin");
+                            let recycle_bin_todos = document.getElementById("recycle_bin_todos");
+                            const todo = document.getElementById("input");
+                            const add = document.getElementById("submit");
 
-        recycle_bin_btn.addEventListener("click", function () {
-            recycle_bin_btn.style.display = "none";
-            recycle_bin.style.transform = "translateX(0)";
-            todo.disabled = true;
-            add.disabled = true;
-        });
+                            recycle_bin_btn.addEventListener("click", function () {
+                                recycle_bin_btn.style.display = "none";
+                                recycle_bin.style.transform = "translateX(0)";
+                                todo.disabled = true;
+                                add.disabled = true;
+                            });
 
-        close_recycle_bin.addEventListener("click", function () {
-            setTimeout(() => {
-                recycle_bin_btn.style.display = "block";
-            }, 600)
-            recycle_bin.style.transform = "translateX(-2000px)";
-            todo.disabled = false;
-            add.disabled = false;
-        });
-        //---------------------------------------------------------------------------
+                            close_recycle_bin.addEventListener("click", function () {
+                                setTimeout(() => {
+                                    recycle_bin_btn.style.display = "block";
+                                }, 600)
+                                recycle_bin.style.transform = "translateX(-2000px)";
+                                todo.disabled = false;
+                                add.disabled = false;
+                            });
+                            //---------------------------------------------------------------------------
 
-        //------------------------render the recycle_bin todos-----------------------
-        fetch("https://node-todo-2-076c.onrender.com/recycle_bin_todo")
-            .then(response => response.json())
-            .then(data => {
-                //----------------------if recycle_bin is empty----------------------
-                if (data.length == 0) {
-                    let recycle_bin_message = document.getElementById("recycle_bin_message");
-                    recycle_bin_message.style.display = "block";
-                    recycle_bin.style.padding = 0;
-                    recycle_bin.style.height = "100vh";
-                }
-                //-------------------------------------------------------------------
+                            //------------------------render the recycle_bin todos-----------------------
+                            fetch("https://node-todo-2-076c.onrender.com/recycle_bin_todo")
+                                .then(response => response.json())
+                                .then(data => {
+                                    //----------------------if recycle_bin is empty----------------------
+                                    if (data.length == 0) {
+                                        let recycle_bin_message = document.getElementById("recycle_bin_message");
+                                        recycle_bin_message.style.display = "block";
+                                        recycle_bin.style.padding = 0;
+                                        recycle_bin.style.height = "100vh";
+                                    }
+                                    //-------------------------------------------------------------------
 
-                //---------recycle_bin scroll for data.length > 4--------------------
-                if (data.length > 4) {
-                    recycle_bin.style.overflowY = "auto";
-                }
-                //-------------------------------------------------------------------
+                                    //---------recycle_bin scroll for data.length > 4--------------------
+                                    if (data.length > 4) {
+                                        recycle_bin.style.overflowY = "auto";
+                                    }
+                                    //-------------------------------------------------------------------
 
-                //------------recycle_bin data.length > 0 than start the timer-------
-                if (data.length > 0) {
-                    console.log('recycle ON!');
-                    async function time() {
-                        try {
-                            let response = await fetch("https://node-todo-2-076c.onrender.com/start-timer", {
-                                method: "GET",
-                                headers: { "Content-Type": "application/json" },
-                            })
-                            console.log("Response Status:", response.status);
-                            if (response.ok) {
-                                let results = await response.json();
-                                console.log(results);
-                            }
-                        } catch (error) {
-                            console.error("ERROR:", error)
-                        }
-                    }
-                    time()
-                    //---------------------------------------------------------------
+                                    //------------recycle_bin data.length > 0 than start the timer-------
+                                    if (data.length > 0) {
+                                        console.log('recycle ON!');
+                                        async function time() {
+                                            try {
+                                                let response = await fetch("https://node-todo-2-076c.onrender.com/start-timer", {
+                                                    method: "GET",
+                                                    headers: { "Content-Type": "application/json" },
+                                                })
+                                                console.log("Response Status:", response.status);
+                                                if (response.ok) {
+                                                    let results = await response.json();
+                                                    console.log(results);
+                                                }
+                                            } catch (error) {
+                                                console.error("ERROR:", error)
+                                            }
+                                        }
+                                        time()
+                                        //---------------------------------------------------------------
 
-                    //----------recycle_bin time progress render in UI---------------
-                    async function time_progress() {
-                        try {
-                            let response = await fetch("https://node-todo-2-076c.onrender.com/timer-status", {
-                                method: "GET",
-                                headers: { "Content-Type": "application/json" },
-                            })
-                            if (response.ok) {
-                                let results = await response.json();
-                                if (results.timerRunning) {
-                                    recycle_bin_btn.innerText = Math.floor(results.remainingTime / 1000);
-                                    recycle_bin_btn.style.fontStyle = "normal";
-                                    recycle_bin_btn.style.fontWeight = "900";
-                                }
-                                timerDisplay.innerText = `Timer: ${results.remainingTime}`;
-                                if (results.timerRunning == false) {
-                                    clearInterval(interval);
-                                    location.reload();
-                                }
-                            }
-                        } catch (error) {
-                            console.error("ERROR:", error)
-                        }
-                    }
-                    //---------------------------------------------------------------
+                                        //----------recycle_bin time progress render in UI---------------
+                                        async function time_progress() {
+                                            try {
+                                                let response = await fetch("https://node-todo-2-076c.onrender.com/timer-status", {
+                                                    method: "GET",
+                                                    headers: { "Content-Type": "application/json" },
+                                                })
+                                                if (response.ok) {
+                                                    let results = await response.json();
+                                                    if (results.timerRunning) {
+                                                        recycle_bin_btn.innerText = Math.floor(results.remainingTime / 1000);
+                                                        recycle_bin_btn.style.fontStyle = "normal";
+                                                        recycle_bin_btn.style.fontWeight = "900";
+                                                    }
+                                                    timerDisplay.innerText = `Timer: ${results.remainingTime}`;
+                                                    if (results.timerRunning == false) {
+                                                        clearInterval(interval);
+                                                        location.reload();
+                                                    }
+                                                }
+                                            } catch (error) {
+                                                console.error("ERROR:", error)
+                                            }
+                                        }
+                                        //---------------------------------------------------------------
 
-                    //-----setInterval for timer_progress render every second--------
-                    let interval = setInterval(() => {
-                        time_progress();
-                    }, 1000);
-                    //---------------------------------------------------------------
-                }
-                //-----------------render the recycle_bin todo's---------------------
-                data.forEach(element => {
-                    recycle_bin_todos.innerHTML += `
-                    <h2 class="recycle_bin_h2">${element.todo}</h2>
-                    <p>${element.Date.Time} | ${element.Date.Date}</p>
-                    <button class="recycle_bin_restore_button" restore-data-id=${element._id}>Rstore</button>
-                    <button class="recycle_bin_delete_button" recycle-data-id=${element._id}>Delete</button>`;
-                    //--------------delete the todo inside of recycle_bin-----------------------------------------------------------
-                    let delete_buttons = document.querySelectorAll(".recycle_bin_delete_button");
-                    delete_buttons.forEach(delete_button => {
-                        delete_button.addEventListener("click", async function () {
-                            let clickedId_recycle_bin = this.getAttribute("recycle-data-id");
-                            console.log(clickedId_recycle_bin);
-                            try {
-                                let response = await fetch(`https://node-todo-2-076c.onrender.com/delete/${clickedId_recycle_bin}`, {
-                                    method: "DELETE",
-                                    headers: { "Content-Type": "application/json" },
+                                        //-----setInterval for timer_progress render every second--------
+                                        let interval = setInterval(() => {
+                                            time_progress();
+                                        }, 1000);
+                                        //---------------------------------------------------------------
+                                    }
+                                    //-----------------render the recycle_bin todo's---------------------
+                                    data.forEach(element => {
+                                        recycle_bin_todos.innerHTML += `
+                                                    <h2 class="recycle_bin_h2">${element.todo}</h2>
+                                                    <p>${element.Date.Time} | ${element.Date.Date}</p>
+                                                    <button class="recycle_bin_restore_button" restore-data-id=${element._id}>Rstore</button>
+                                                    <button class="recycle_bin_delete_button" recycle-data-id=${element._id}>Delete</button>`;
+                                        //--------------delete the todo inside of recycle_bin-----------------------------------------------------------
+                                        let delete_buttons = document.querySelectorAll(".recycle_bin_delete_button");
+                                        delete_buttons.forEach(delete_button => {
+                                            delete_button.addEventListener("click", async function () {
+                                                let clickedId_recycle_bin = this.getAttribute("recycle-data-id");
+                                                console.log(clickedId_recycle_bin);
+                                                try {
+                                                    let response = await fetch(`https://node-todo-2-076c.onrender.com/delete/${clickedId_recycle_bin}`, {
+                                                        method: "DELETE",
+                                                        headers: { "Content-Type": "application/json" },
+                                                    })
+                                                    console.log("Response Status:", response.status);
+                                                    if (response.ok) {
+                                                        let results = await response.json();
+                                                        console.log(results);
+                                                        location.reload();
+                                                    }
+                                                } catch (error) {
+                                                    console.log("Error:", error);
+                                                }
+
+                                            })
+                                        });
+                                        //--------------------------------------------------------------------------------------------------------------
+
+                                        //---------------restore the todo inside of recycle_bin---------------------------------------------------------
+                                        let restore_buttons = document.querySelectorAll(".recycle_bin_restore_button");
+                                        restore_buttons.forEach(restore_button => {
+                                            restore_button.addEventListener("click", async function () {
+                                                let restore_ID = this.getAttribute("restore-data-id");
+                                                console.log(restore_ID);
+                                                try {
+                                                    let response = await fetch(`https://node-todo-2-076c.onrender.com/restore/${restore_ID}`, {
+                                                        method: "GET",
+                                                        headers: { "Content-Type": "application/json" },
+                                                    })
+                                                    console.log("Response Status:", response.status);
+                                                    if (response.ok) {
+                                                        let results = await response.json();
+                                                        console.log(results);
+                                                        location.reload();
+                                                    }
+                                                } catch (error) {
+                                                    console.log("Error:", error);
+                                                }
+
+                                            })
+                                        });
+                                        //--------------------------------------------------------------------------------------------------------------
+                                    });
                                 })
-                                console.log("Response Status:", response.status);
-                                if (response.ok) {
-                                    let results = await response.json();
-                                    console.log(results);
-                                    location.reload();
-                                }
-                            } catch (error) {
-                                console.log("Error:", error);
-                            }
+                                .catch(err => {
+                                    console.error("error", err);
+                                });
+                        }
+                    } else {
+                        stfls();//when password was invalid. then call stfls() start timer for lock system.
+                        let Invalid_message = document.getElementById("Invalid_message");
+                        Invalid_message.style.display = "block";
+                        setTimeout(() => {
+                            form_for_lock_system.reset();
+                            Invalid_message.style.display = "none";
+                        }, 1000);
+                    }
+                } else {
+                    console.error("post in locksystem error");
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        })
+        //-----------------------end lock system ------------------------------------
 
-                        })
-                    });
-                    //--------------------------------------------------------------------------------------------------------------
-
-                    //---------------restore the todo inside of recycle_bin---------------------------------------------------------
-                    let restore_buttons = document.querySelectorAll(".recycle_bin_restore_button");
-                    restore_buttons.forEach(restore_button => {
-                        restore_button.addEventListener("click", async function () {
-                            let restore_ID = this.getAttribute("restore-data-id");
-                            console.log(restore_ID);
-                            try {
-                                let response = await fetch(`https://node-todo-2-076c.onrender.com/restore/${restore_ID}`, {
-                                    method: "GET",
-                                    headers: { "Content-Type": "application/json" },
-                                })
-                                console.log("Response Status:", response.status);
-                                if (response.ok) {
-                                    let results = await response.json();
-                                    console.log(results);
-                                    location.reload();
-                                }
-                            } catch (error) {
-                                console.log("Error:", error);
-                            }
-
-                        })
-                    });
-                    //--------------------------------------------------------------------------------------------------------------
-                });
-            })
-            .catch(err => {
-                console.error("error", err);
-            });
     </script>
 </body>
 
