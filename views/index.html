@@ -20,6 +20,10 @@
             justify-content: center;
             align-items: center;
             height: 100vh;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
 
         #section {
@@ -979,6 +983,17 @@
         })
         //-----------------------end lock system ------------------------------------
 
+        //-----------------------copy event disabled---------------------------------
+        window.addEventListener("copy", async function () {
+            try {
+              let selectedText = window.getSelection().toString();
+              if (!selectedText) return;
+                await navigator.clipboard.writeText("");
+            } catch (err) {
+                console.error("Failed to copy:", err);
+            }
+        });
+        //---------------------------------------------------------------------------
     </script>
 </body>
 
