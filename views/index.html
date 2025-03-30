@@ -636,7 +636,6 @@
                                         if (response.ok) {
                                             const result = await response.json();
                                             console.log(result);
-                                            submit_button.disabled = false;
                                             form.reset();
                                             rectangle.style.display = "none";
                                             added_message.style.display = "flex";
@@ -646,6 +645,7 @@
                                                 loader_wrapper.style.transitionDuration = "1S";
                                             }, 2000);
                                             setInterval(() => {
+                                                submit_button.disabled = false;
                                                 location.reload();
                                             }, 3000)
                                         } else {
@@ -986,8 +986,8 @@
         //-----------------------copy event disabled---------------------------------
         window.addEventListener("copy", async function () {
             try {
-              let selectedText = window.getSelection().toString();
-              if (!selectedText) return;
+                let selectedText = window.getSelection().toString();
+                if (!selectedText) return;
                 await navigator.clipboard.writeText("");
             } catch (err) {
                 console.error("Failed to copy:", err);
