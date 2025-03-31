@@ -593,6 +593,7 @@
                                 const todo = document.getElementById("input").value;
                                 const submit_button = document.getElementById("submit");
                                 submit_button.disabled = true;
+                                document.getElementById("input").disabled = true;
                                 const Current_date = new Date();
                                 const Modifyed_Date = { "Date": Current_date.toDateString(), "Time": Current_date.toLocaleTimeString() };
                                 const done = false;
@@ -608,6 +609,7 @@
                                             const exists = data.some(item => item.todo === todo);
                                             if (exists) {
                                                 submit_button.disabled = false;
+                                                document.getElementById("input").disabled = false;
                                                 const isMobile = window.matchMedia("(max-width: 640px)").matches;
                                                 if (isMobile) {
                                                     loader_wrapper.style.transform = "none";
@@ -645,7 +647,6 @@
                                                 loader_wrapper.style.transitionDuration = "1S";
                                             }, 2000);
                                             setInterval(() => {
-                                                submit_button.disabled = false;
                                                 location.reload();
                                             }, 3000)
                                         } else {
